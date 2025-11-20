@@ -1,0 +1,28 @@
+#include <Servo.h>
+
+Servo myServo;
+int pinServo = 9;
+int targetPos = 0;
+
+void setup() {
+  Serial.begin(9600);      // Mulai komunikasi serial
+  myServo.attach(pinServo);
+  
+  Serial.println("Ketik sudut servo (0 - 180):");
+}
+
+void loop() {
+  // Mengecek apakah ada data masuk dari Serial
+  if (Serial.available() > 0) {
+    targetPos = Serial.parseInt();  // Membaca angka yang diketik
+
+    // Validasi derajat agar tetap antara 0-180
+    if (targetPos >= 0 && targetPos <= 180) {
+      myServo.write(targetPos);
+      Serial.print("Servo bergerak ke: ");
+      Serial.println(targetPos);
+    } else {
+      Serial.println("ERROR: Masukkan angka 0 - 180!");
+    }
+  }
+}

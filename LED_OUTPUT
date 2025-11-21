@@ -1,0 +1,32 @@
+int ledHijau = 12;  
+int ledMerah = 13;   
+
+int nilai = 0;      
+void setup() {
+  Serial.begin(9600);
+
+  pinMode(ledHijau, OUTPUT);
+  pinMode(ledMerah, OUTPUT);
+
+  Serial.println("Masukkan angka (0 = Hijau, >0 = Merah)");
+}
+
+void loop() {
+
+  if (Serial.available() > 0) {
+    nilai = Serial.parseInt();
+
+    Serial.print("Input: ");
+    Serial.println(nilai);
+
+    
+    if (nilai == 0) {
+      digitalWrite(ledHijau, HIGH);
+      digitalWrite(ledMerah, LOW);
+    } 
+    else {
+      digitalWrite(ledHijau, LOW);
+      digitalWrite(ledMerah, HIGH);
+    }
+  }
+}

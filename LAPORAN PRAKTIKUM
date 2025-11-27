@@ -1,0 +1,34 @@
+Automatic Clothes Dryer and Microcontroller-Based Weather Forecast
+
+A.Latar Belakang :
+
+   Siapa di antara kita yang tidak pernah kesal saat terburu-buru menjemur pakaian di luar, lalu tiba-tiba langit mendung pekat dan hujan turun deras tanpa peringatan? Atau, bagi kita yang tinggal di apartemen atau rumah dengan ruang jemur terbatas, mengandalkan cuaca cerah seperti berjudi. Meskipun pengering listrik sudah ada, seringkali kita harus menebak-nebak berapa lama waktu yang dibutuhkan. Kita menyetel timer, padahal pakaian sudah kering 15 menit sebelumnya, alhasil kita membuang-buang listrik.
+   Di era serba canggih ini, di mana rumah kita semakin "pintar," sudah saatnya proses pengeringan pakaian juga ikut berevolusi. Penelitian ini lahir dari kebutuhan sederhana: menciptakan pengering yang tidak sekadar memanaskan, tetapi juga berpikir. Dengan memanfaatkan kecerdasan dari mikrokontroler (otak kecil seperti Arduino) dan kemampuan mengakses data cuaca real-time, kita bisa membangun sebuah sistem yang tahu kapan harus menyala (karena di luar hujan), tahu kapan harus berhenti (karena pakaian sudah kering sempurna), dan bahkan bisa memprediksi langkah selanjutnya. Singkatnya, kita ingin menghilangkan kecemasan karena hujan tiba-tiba dan membuat proses pengeringan pakaian menjadi efisien, hemat energi, dan benar-benar hands-free.
+ 
+ B.Rumusan Masalah : 
+- Bagaimana cara kita merancang sebuah sistem pengering yang mampu mengidentifikasi tingkat kelembapan pakaian secara otomatis dan menjadikan data itu sebagai penentu utama apakah proses pengeringan harus berlanjut atau berhenti?
+- Bagaimana kita bisa membuat mikrokontroler berkomunikasi dengan "dunia luar"—mengambil data prakiraan cuaca atau sensor lingkungan—dan menggunakannya untuk mengambil keputusan operasional (misalnya, "di luar mendung, segera mulai proses pengeringan dalam ruangan")?
+- Apakah dengan otomatisasi yang cerdas ini, kita benar-benar dapat melihat pengurangan yang signifikan dalam konsumsi energi dibandingkan dengan pengering konvensional yang hanya menggunakan timer?
+- Seberapa andal dan akurat sistem ini dalam kondisi pengujian yang berbeda? Bisakah sistem ini beroperasi secara mulus tanpa error dan memberikan hasil yang konsisten?
+
+C.Tujuan Penelitian
+- Bagaimana cara kita merancang sebuah sistem pengering yang mampu mengidentifikasi tingkat kelembapan pakaian secara otomatis dan menjadikan data itu sebagai penentu utama apakah proses pengeringan harus berlanjut atau berhenti?
+- Bagaimana kita bisa membuat mikrokontroler berkomunikasi dengan "dunia luar"—mengambil data prakiraan cuaca atau sensor lingkungan—dan menggunakannya untuk mengambil keputusan operasional (misalnya, "di luar mendung, segera mulai proses pengeringan dalam ruangan")?
+- Apakah dengan otomatisasi yang cerdas ini, kita benar-benar dapat melihat pengurangan yang signifikan dalam konsumsi energi dibandingkan dengan pengering konvensional yang hanya menggunakan timer?
+- Seberapa andal dan akurat sistem ini dalam kondisi pengujian yang berbeda? Bisakah sistem ini beroperasi secara mulus tanpa error dan memberikan hasil yang konsisten?
+
+D.Alat dan Bahan
+  - Ardiuno MEGA ADK
+  - Breadboard
+  - Water Sensor
+  - Temperature & Humidity Sensor
+  - RTC
+  - Push Botton
+  - Buzzer
+  - LCD I2C
+  - Motor Servo
+  - LED
+
+    E.Pengujian Komponen
+    F.Pembuatan Alat
+    G.Hasil dan Pembahasan

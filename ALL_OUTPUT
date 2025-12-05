@@ -1,0 +1,66 @@
+#include <Servo.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+Servo myServo;
+int pinServo = 9;
+
+
+int ledHijau = 12;   
+int ledMerah = 13;  
+int targetPos = 0;
+
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+void setup() {
+  Serial.begin(9600);
+
+  myServo.attach(pinServo);
+
+  pinMode(ledHijau, OUTPUT);
+  pinMode(ledMerah, OUTPUT);
+
+  lcd.init();
+  lcd.backlight();
+  lcd.clear();
+
+  lcd.setCursor(0, 0);
+  lcd.print("Input Derajat:");
+
+  Serial.println("Masukkan sudut 0 - 180:");
+}
+
+void loop() {
+
+  if (Serial.available() > 0) {
+    targetPos = Serial.parseInt();
+
+    if (targetPos >= 0 && targetPos <= 180) {
+
+      myServo.write(targetPos);
+
+     
+      lcd.setCursor(0, 1);
+      lcd.print("Sudut: ");
+      lcd.print(targetPos);
+      lcd.print("   ");
+
+    
+      if (targetPos == 0) {
+        digitalWrite(ledHijau, HIGH); 
+        digitalWrite(ledMerah, LOW); 
+      } else {
+        digitalWrite(ledHijau, LOW); 
+        digitalWrite(ledMerah, HIGH); 
+      }
+
+      
+      Serial.print("Servo ke: ");
+      Serial.println(targetPos);
+
+    } else {
+      Serial.println("ERROR: masukkan angka 0 - 180 !");
+    }
+  }
+}

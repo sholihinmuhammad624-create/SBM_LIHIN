@@ -1,0 +1,24 @@
+const int waterPin = A0;   
+int value = 0;             
+
+void setup() {
+  Serial.begin(9600);     
+}
+
+void loop() {
+  value = analogRead(waterPin);  
+
+  Serial.print("Nilai Sensor: ");
+  Serial.println(value);
+
+  // Logika mendeteksi air
+  if (value < 160) {   
+    Serial.println("Status: ADA AIR");
+  } else {
+    Serial.println("Status: TIDAK ADA AIR");
+  }
+
+  Serial.println("----------------------");
+  delay(500);
+}
+

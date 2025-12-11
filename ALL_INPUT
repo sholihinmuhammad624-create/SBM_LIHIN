@@ -1,67 +1,84 @@
 #include <Wire.h>
 #include <RTClib.h>
-#include <DHT.h>
+#include "DHT.h"
 
 
-#define DHTPIN 2         
-#define DHTTYPE DHT11    
-#define WATER_PIN A0     
 RTC_DS3231 rtc;
+
+#define DHTPIN 2
+#define DHTTYPE DHT11      
 DHT dht(DHTPIN, DHTTYPE);
+
+int waterPin = A0;        
+int lightPin = A1;         
 
 void setup() {
   Serial.begin(9600);
-
-  
   dht.begin();
 
-  
+ 
   if (!rtc.begin()) {
     Serial.println("RTC TIDAK TERDETEKSI!");
     while (1);
   }
 
-  
+ 
+ 
   rtc.adjust(DateTime(2025, 12, 5, 16, 0, 0));
-  
-  Serial.println("Sistem Siap...");
+ 
+
+  Serial.println("Semua Sensor Siap!");
 }
 
 void loop() {
-  
+
+ 
   DateTime now = rtc.now();
 
   
-  float suhu = dht.readTemperature();
-  float lembab = dht.readHumidity();
+  float humidity = dht.readHumidity();
+  float temperature = dht.readTemperature();
 
   
-  int waterValue = analogRead(WATER_PIN);
+  int waterValue = analogRead(waterPin);
 
   
-  Serial.print("Tanggal: ");
-  Serial.print(now.day()); Serial.print("/");
-  Serial.print(now.month()); Serial.print("/");
+  int lightValue = analogRead(lightPin);
+
+  
+  Serial.println("=================================");
+
+  
+  Serial.print("Waktu : ");
+  Serial.print(now.day());
+  Serial.print("/");
+  Serial.print(now.month());
+  Serial.print("/");
   Serial.print(now.year());
   Serial.print("  ");
-
-  Serial.print("Jam: ");
-  Serial.print(now.hour()); Serial.print(":");
-  Serial.print(now.minute()); Serial.print(":");
+  Serial.print(now.hour());
+  Serial.print(":");
+  Serial.print(now.minute());
+  Serial.print(":");
   Serial.println(now.second());
 
-  Serial.print("Suhu: "); 
-  Serial.print(suhu);
+  Serial.print("Temperature : ");
+  Serial.print(temperature);
   Serial.println(" C");
 
-  Serial.print("Kelembapan: ");
-  Serial.print(lembab);
+  Serial.print("Humidity    : ");
+  Serial.print(humidity);
   Serial.println(" %");
 
-  Serial.print("Water Sensor: ");
+  
+  Serial.print("Water Level : ");
   Serial.println(waterValue);
 
-  Serial.println("---------------------------");
 
-  delay(500);
+  Serial.print("Cahaya (LDR): ");
+  Serial.println(lightValue);
+
+  Serial.println("=================================\n");
+
+  delay(1000);
 }

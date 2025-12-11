@@ -1,0 +1,14 @@
+int ldrPin = A0;    
+int nilaiCahaya;   
+
+void setup() {
+  Serial.begin(9600);  
+}
+
+void loop() {
+  nilaiCahaya = analogRead(ldrPin);  
+  Serial.print("Nilai Cahaya: ");
+  Serial.println(nilaiCahaya);       
+
+  delay(500);
+}

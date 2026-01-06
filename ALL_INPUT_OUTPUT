@@ -1,195 +1,137 @@
-// Arduino sketch: DHT + RTC + Water + Light + Button + Buzzer + 2 LEDs + Servo + LCD I2C
-// Perangkat: DS3231, DHT22 (atau DHT11), LiquidCrystal_I2C, Servo
-
 #include <Wire.h>
 #include <RTClib.h>
 #include <DHT.h>
 #include <LiquidCrystal_I2C.h>
 #include <Servo.h>
 
-// ---------- PENGATURAN PIN ----------
-#define DHT_PIN        2
-#define DHT_TYPE       DHT22   // Ganti ke DHT11 jika pakai DHT11
-#define WATER_PIN      A0
-#define LIGHT_PIN      A1
-#define BUTTON_PIN     3
-#define BUZZER_PIN     4
-#define LED_RED_PIN    5
-#define LED_GREEN_PIN  6
-#define SERVO_PIN      9
+// ===== PIN =====
+#define DHT_PIN 2
+#define DHT_TYPE DHT11
+#define WATER_PIN A0
+#define LIGHT_PIN A1
+#define BUTTON_PIN 3
+#define BUZZER_PIN 4
+#define LED_RED 5
+#define LED_GREEN 6
+#define SERVO_PIN 9
 
-// ---------- KONSTANTA ----------
-#define WATER_THRESHOLD 160       // jika < 160 dianggap bermasalah
-#define HUMIDITY_RAIN_THRESHOLD 85 // jika kelembapan >= ini anggap hujan
-#define SERVO_OPEN_ANGLE 140     // buka maksimal
-#define SERVO_CLOSED_ANGLE 0     // tertutup
-#define BTN_DEBOUNCE_MS 50
+// ===== KONSTANTA =====
+#define WATER_THRESHOLD 160
+#define HUMIDITY_RAIN 85
+#define SERVO_OPEN 140
+#define SERVO_CLOSE 0
 
-// ---------- OBJEK ----------
 RTC_DS3231 rtc;
 DHT dht(DHT_PIN, DHT_TYPE);
-LiquidCrystal_I2C lcd(0x27, 16, 2); // alamat 0x27 umum; ganti jika berbeda (0x3F dlm beberapa modul)
-Servo myServo;
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+Servo servoMotor;
 
-// ---------- VAR ---------- 
-unsigned long lastBtnMillis = 0;
-bool lastBtnState = HIGH; // using INPUT_PULLUP
-bool btnPressed = false;
+// ===== VAR =====
+bool servoState = false;        // false = tutup, true = buka
+bool lastButton = HIGH;
+bool buzzerDone = false;        // agar buzzer hanya 2x
+
+void buzzer2x() {
+  for (int i = 0; i < 2; i++) {
+    tone(BUZZER_PIN, 1500);
+    delay(200);
+    noTone(BUZZER_PIN);
+    delay(200);
+  }
+}
 
 void setup() {
   Serial.begin(9600);
-  while (!Serial) { ; }
 
-  // inisialisasi hardware
   pinMode(BUTTON_PIN, INPUT_PULLUP);
   pinMode(BUZZER_PIN, OUTPUT);
-  pinMode(LED_RED_PIN, OUTPUT);
-  pinMode(LED_GREEN_PIN, OUTPUT);
+  pinMode(LED_RED, OUTPUT);
+  pinMode(LED_GREEN, OUTPUT);
 
   dht.begin();
   lcd.init();
   lcd.backlight();
-  myServo.attach(SERVO_PIN);
+  servoMotor.attach(SERVO_PIN);
 
-  if (!rtc.begin()) {
-    Serial.println("RTC TIDAK TERDETEKSI!");
-    lcd.clear();
-    lcd.print("RTC TIDAK TERDETEKSI");
-    while (1);
-  }
+  rtc.begin();
 
-  // ===== SET WAKTU SEKARANG (upload 1x) =====
-  // Waktu di-set ke saat ini (UTC+8 / Asia/Makassar) — diganti otomatis saat upload
-  rtc.adjust(DateTime(2025, 12, 11, 16, 35, 25)); // <-- Baris ini: setelah upload 1x, ubah jadi komentar
-  // rtc.adjust(DateTime(YYYY, MM, DD, HH, MM, SS)); 
-
-  Serial.println("Sistem siap.");
-  lcd.clear();
   lcd.print("Sistem Siap");
   delay(1000);
+  lcd.clear();
+
+  servoMotor.write(SERVO_CLOSE);
 }
 
 void loop() {
-  // baca sensor
-  float temp = dht.readTemperature(); // Celcius
+  float suhu = dht.readTemperature();
   float hum = dht.readHumidity();
+
   int waterVal = analogRead(WATER_PIN);
-  int lightVal = analogRead(LIGHT_PIN); // 0..1023
-  int lightPercent = map(lightVal, 0, 1023, 0, 100);
+  int lightVal = analogRead(LIGHT_PIN);
+  int lightPct = map(lightVal, 0, 1023, 0, 100);
+
   DateTime now = rtc.now();
 
-  // deteksi hujan (threshold kelembapan)
-  bool isRaining = false;
-  if (!isnan(hum) && hum >= HUMIDITY_RAIN_THRESHOLD) isRaining = true;
-  // water sensor low detection
+  // ===== KONDISI =====
+  bool hujan = (!isnan(hum) && hum >= HUMIDITY_RAIN);
   bool waterLow = (waterVal < WATER_THRESHOLD);
+  bool gelap = (lightPct < 10);
+  bool jamLima = (now.hour() >= 17);
 
-  // kondisi waktu pukul 17:00 (5 sore)
-  bool isFivePM = (now.hour() == 17 && now.minute() == 0); // jika ingin setiap menit 17:00 -> true hanya pada saat tepat 17:00
-  // Jika ingin selalu selama jam 17: set isFivePM = (now.hour() == 17);
+  bool aman = !(hujan || waterLow || gelap || jamLima);
 
-  // Tentukan kondisi tampilan & LED
-  String conditionText = "";
-  bool safeCondition = true;
+  // ===== LED =====
+  digitalWrite(LED_GREEN, aman);
+  digitalWrite(LED_RED, !aman);
 
-  if (isRaining) {
-    conditionText = "Hujan";
-    safeCondition = false;
-  } else if (waterLow) {
-    conditionText = "WaterLow";
-    safeCondition = false;
+  // ===== BUZZER (2x JIKA LED MERAH) =====
+  if (!aman && !buzzerDone) {
+    buzzer2x();
+    buzzerDone = true;
+  }
+  if (aman) {
+    buzzerDone = false;
+  }
+
+  // ===== PUSH BUTTON TOGGLE =====
+  bool btn = digitalRead(BUTTON_PIN);
+  if (btn == LOW && lastButton == HIGH) {
+    servoState = !servoState;
+    delay(250); // debounce
+  }
+  lastButton = btn;
+
+  // ===== SERVO =====
+  if (gelap || hujan || waterLow || jamLima) {
+    servoMotor.write(SERVO_CLOSE);
   } else {
-    // berdasarkan cahaya
-    if (lightPercent <= 50) {
-      conditionText = "Mendung";
-      // mendung masih bisa jadi aman (tidak memaksa servo), tergantung water sensor & waktu
-    } else {
-      conditionText = "Cerah";
-    }
+    servoMotor.write(servoState ? SERVO_OPEN : SERVO_CLOSE);
   }
 
-  // Jika pukul 17 atau waterLow atau hujan -> tidak aman
-  if (isFivePM || isRaining || waterLow) safeCondition = false;
+  // ===== STATUS CAHAYA =====
+  String kondisi;
+  if (hujan) kondisi = "HUJAN";
+  else if (gelap) kondisi = "GELAP";
+  else if (lightPct <= 50) kondisi = "MENDUNG";
+  else kondisi = "CERAH";
 
-  // set LED
-  if (safeCondition) {
-    digitalWrite(LED_GREEN_PIN, HIGH);
-    digitalWrite(LED_RED_PIN, LOW);
-  } else {
-    digitalWrite(LED_GREEN_PIN, LOW);
-    digitalWrite(LED_RED_PIN, HIGH);
-  }
-
-  // buzzer if raining OR waterLow
-  if (isRaining || waterLow) {
-    tone(BUZZER_PIN, 1500); // bunyi
-  } else {
-    noTone(BUZZER_PIN);
-  }
-
-  // Servo logic:
-  // - Jika kondisi aman -> buka 140
-  // - Jika tidak aman -> tertutup 0
-  // - Jika push button ditekan -> jalankan servo sesuai LED sekarang
-  int targetAngle;
-  if (safeCondition) targetAngle = SERVO_OPEN_ANGLE;
-  else targetAngle = SERVO_CLOSED_ANGLE;
-
-  // tombol (debounce) - ketika ditekan, jalankan servo ke targetAngle
-  bool curBtn = digitalRead(BUTTON_PIN);
-  if (curBtn != lastBtnState) {
-    lastBtnMillis = millis();
-  }
-  if ((millis() - lastBtnMillis) > BTN_DEBOUNCE_MS) {
-    if (curBtn == LOW && lastBtnState == HIGH) { // ditekan (active low)
-      btnPressed = true;
-    }
-  }
-  lastBtnState = curBtn;
-
-  if (btnPressed) {
-    // jalankan servo sesuai targetAngle saat ini
-    myServo.write(constrain(targetAngle, SERVO_CLOSED_ANGLE, SERVO_OPEN_ANGLE));
-    Serial.print("Button pressed -> Servo to "); Serial.println(targetAngle);
-    btnPressed = false;
-    // beri sedikit delay supaya gerakan terasa
-    delay(300);
-  } else {
-    // otomatis jaga posisi sesuai kondisi (agar tetap sinkron)
-    myServo.write(constrain(targetAngle, SERVO_CLOSED_ANGLE, SERVO_OPEN_ANGLE));
-  }
-
-  // Display ke Serial & LCD
-  Serial.print("Time: ");
-  Serial.print(now.timestamp());
-  Serial.print(" | Temp: ");
-  if (isnan(temp)) Serial.print("Err");
-  else Serial.print(temp, 1);
-  Serial.print("C Hum: ");
-  if (isnan(hum)) Serial.print("Err");
-  else Serial.print(hum, 1);
-  Serial.print("% | Light: ");
-  Serial.print(lightPercent);
-  Serial.print("% | Water: ");
-  Serial.print(waterVal);
-  Serial.print(" | Cond: ");
-  Serial.println(conditionText);
-
-  // LCD: baris 1: Temp & Hum, baris2: kondisi + light%
-  lcd.clear();
+  // ===== LCD =====
   lcd.setCursor(0, 0);
-  if (isnan(temp) || isnan(hum)) {
-    lcd.print("Suhu/Kelam Err");
+  if (isnan(suhu) || isnan(hum)) {
+    lcd.print("Sensor Error   ");
   } else {
-    char buf[17];
-    snprintf(buf, 17, "T:%2.1fC H:%2.0f%%", temp, hum);
-    lcd.print(buf);
+    lcd.print("T:");
+    lcd.print(suhu, 1);
+    lcd.print(" H:");
+    lcd.print(hum, 0);
+    lcd.print("% ");
   }
-  lcd.setCursor(0, 1);
-  // Tulisan kondisi
-  String line2 = conditionText + " " + String(lightPercent) + "%";
-  lcd.print(line2);
 
-  // delay loop
+  lcd.setCursor(0, 1);
+  lcd.print(kondisi);
+  lcd.print(" ");
+  lcd.print(lightPct);
+  lcd.print("%   ");
+
   delay(1000);
 }

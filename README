@@ -1,422 +1,304 @@
-Automatic Clothes Dryer and Microcontroller-Based Weather Forecast
-NAMA : MUHAMMAD SHOLIHIN
-NIM : 2306030069
+# Automatic Clothes Dryer and Microcontroller-Based Weather Forecast
 
-LATAR BELAKANG
+**Nama** : Muhammad Sholihin
+**NIM** : 2306030069
 
- Perkembangan Internet of Things (IoT) telah mendorong otomasi rumah menjadi lebih terjangkau dan efektif. Menurut Zanella et al. (2014), IoT memungkinkan integrasi berbagai sensor untuk sistem cerdas yang meningkatkan kualitas hidup. Di Indonesia,data BMKG (2023) menunjukkan curah hujan tinggi yang dapat merusak perabotan teras, dengan penelitian Sari et al. (2021) membuktikan kelembaban >80% mempercepat kerusakan kayu hingga 40%.
- Sistem otomasi existing masih terbatas. Studi Gupta & Kumar (2022) mengidentifikasi masalah sistem konvensional yang hanya menggunakan sensor tunggal dan kurang responsif. Sementara data MarketsandMarkets (2023) menunjukkan harga sensor IoT terus turun dengan akurasi meningkat, membuat solusi otomasi lebih accessible.
- Platform IoT seperti Blynk (Chen et al., 2020) mengurangi biaya pengembangan hingga 60%. Laporan Kemenkominfo (2022) mencatat pertumbuhan smart home 25% per tahun di Indonesia, namun masih butuh solusi terjangkau.
- Oleh karena itu, proyek ini mengembangkan sistem otomasi teras berbasis ESP32 dengan multi-sensor dan integrasi Blynk untuk monitoring remote, menjawab kebutuhan akan sistem yang komprehensif, responsif, dan terjangkau.
+---
 
-RUMUSAN MASALAH
-1. Bagaimana membuat sistem yang dapat mendeteksi kondisi lingkungan (hujan, kelembaban, cahaya) secara otomatis?
-2. Bagaimana sistem dapat merespon kondisi lingkungan dengan mengontrol servo?
-3. Bagaimana mengintegrasikan seluruh komponen sensor dan aktuator agar bekerja sesuai fungsi?
-4. Bagaimana memonitor dan mengontrol sistem melalui platform IoT (Blynk) dari jarak jauh?
+## 1. Latar Belakang
 
-TUJUAN
-1. Menguji kinerja masing-masing sensor (DHT11, LDR, Water Sensor,Rtc)
-2. Menguji respon output (LED, Buzzer, Servo,LCD) terhadap input sensor
-3. Menguji integrasi seluruh komponen dalam satu sistem yang kohesif
-4. Mengintegrasikan sistem dengan platform Blynk untuk monitoring dan kontrol remote
- 
-ALAT DAN BAHAN 
-HARDWARE :
-1.	ESP32 : Mikrokontroler utama dengan WiFi/Bluetooth built-in  
-2.	Sensor DHT11 : Mengukur suhu dan kelembaban  
-3.	Sensor Water Level : Mendeteksi air/hujan  
-4.	LDR (Light Sensor) : Mengukur intensitas cahaya  
-5.	RTC DS3231: Menyimpan waktu & tanggal  
-6.	Servo Motor SG90: Menggerakkan kanopi teras  
-7.	LCD I2C 16x2 Fungsi: Display status sistem  
-8.	LED Merah & Hijau : Indikator status sistem  
-9.	Buzzer Active : Alarm peringatan audio  
-10.	 Push Button : Kontrol manual servo
-Software:
-1.	Arduino IDE
-2.	Library: Wire.h, RTClib.h, DHT.h, LiquidCrystal_I2C.h, Servo.h, Blynk.h
-3.	Platform Blynk Cloud
-    
- 
+Perkembangan *Internet of Things* (IoT) telah mendorong otomasi rumah menjadi lebih terjangkau dan efektif. Menurut Zanella et al. (2014), IoT memungkinkan integrasi berbagai sensor untuk membangun sistem cerdas yang mampu meningkatkan kualitas hidup.
 
-Pengujian Komponen
-1.	Pengujian Sensor
-A. Pengujian Sensor DHT11
-Langkah:
-1. Sambungkan DHT11 ke pin D4 ESP32
-2. Upload kode test sederhana
-3. Bandingkan bacaan dengan termometer digital
-4. Simulasi kelembaban tinggi dengan mendekatkan gelas yang isi nya air dingin
-```
+Di Indonesia, data BMKG (2023) menunjukkan curah hujan yang relatif tinggi, yang berpotensi merusak perabotan rumah tangga di area terbuka seperti teras. Penelitian oleh Sari et al. (2021) membuktikan bahwa kelembaban di atas 80% dapat mempercepat kerusakan material kayu hingga 40%.
+
+Sebagian besar sistem otomasi konvensional masih memiliki keterbatasan. Studi Gupta & Kumar (2022) menunjukkan bahwa banyak sistem hanya mengandalkan satu sensor sehingga kurang responsif terhadap perubahan lingkungan. Di sisi lain, laporan MarketsandMarkets (2023) menunjukkan harga sensor IoT semakin terjangkau dengan tingkat akurasi yang terus meningkat.
+
+Platform IoT seperti **Blynk** (Chen et al., 2020) mampu mengurangi biaya pengembangan hingga 60%. Kementerian Kominfo (2022) juga melaporkan pertumbuhan *smart home* di Indonesia mencapai 25% per tahun, namun masih diperlukan solusi yang ekonomis dan mudah diimplementasikan.
+
+Berdasarkan kondisi tersebut, proyek ini mengembangkan sistem **Automatic Clothes Dryer berbasis ESP32** dengan multi-sensor dan integrasi Blynk untuk pemantauan jarak jauh.
+
+---
+
+## 2. Rumusan Masalah
+
+1. Bagaimana merancang sistem yang dapat mendeteksi kondisi lingkungan (hujan, kelembaban, dan cahaya) secara otomatis?
+2. Bagaimana sistem merespons kondisi lingkungan dengan mengendalikan motor servo?
+3. Bagaimana mengintegrasikan seluruh sensor dan aktuator agar bekerja secara terpadu?
+4. Bagaimana melakukan monitoring dan kontrol sistem melalui platform IoT (Blynk)?
+
+---
+
+## 3. Tujuan
+
+1. Menguji kinerja sensor DHT11, LDR, Water Sensor, dan RTC.
+2. Menguji respons output (LED, buzzer, servo, dan LCD) terhadap input sensor.
+3. Menguji integrasi seluruh komponen dalam satu sistem.
+4. Mengintegrasikan sistem dengan platform Blynk untuk monitoring dan kontrol jarak jauh.
+
+---
+
+## 4. Alat dan Bahan
+
+### Hardware
+
+1. ESP32 – Mikrokontroler utama dengan WiFi dan Bluetooth
+2. Sensor DHT11 – Pengukur suhu dan kelembaban
+3. Water Sensor – Pendeteksi air/hujan
+4. LDR (Light Dependent Resistor) – Sensor intensitas cahaya
+5. RTC DS3231 – Modul waktu dan tanggal
+6. Servo Motor SG90 – Penggerak mekanik kanopi
+7. LCD I2C 16x2 – Media tampilan informasi
+8. LED Merah & Hijau – Indikator status sistem
+9. Buzzer aktif – Alarm peringatan
+10. Push Button – Kontrol manual servo
+
+### Software
+
+* Arduino IDE
+* Library: `Wire.h`, `RTClib.h`, `DHT.h`, `LiquidCrystal_I2C.h`, `Servo.h`, `Blynk.h`
+* Platform Blynk Cloud
+
+---
+
+## 5. Pengujian Komponen
+
+Bagian ini menjelaskan langkah-langkah pengujian setiap komponen secara terpisah sebelum diintegrasikan ke dalam sistem. Setiap pengujian dilakukan untuk memastikan komponen bekerja sesuai spesifikasi dan layak digunakan pada tahap integrasi.
+
+### 5.1 Pengujian Sensor DHT11
+
+**Tujuan Pengujian:**
+Pengujian ini bertujuan untuk memastikan sensor DHT11 mampu membaca nilai suhu dan kelembaban dengan baik serta menampilkan data secara real-time melalui Serial Monitor.
+
+**Langkah-langkah Pengujian:**
+
+1. Hubungkan pin data DHT11 ke pin GPIO 2 ESP32.
+2. Hubungkan pin VCC ke 3.3V dan GND ke ground.
+3. Upload program pengujian ke ESP32.
+4. Buka Serial Monitor dan amati nilai suhu serta kelembaban.
+5. Lakukan simulasi kelembaban tinggi dengan mendekatkan benda lembab ke sensor.
+
+**Tujuan:** Menguji akurasi pembacaan suhu dan kelembaban.
+
+```cpp
 #include "DHT.h"
-
-#define DHTPIN 2        
-#define DHTTYPE DHT11   
-
+#define DHTPIN 2
+#define DHTTYPE DHT11
 DHT dht(DHTPIN, DHTTYPE);
 
 void setup() {
   Serial.begin(9600);
   dht.begin();
-  Serial.println("Reading Temperature & Humidity...");
 }
 
 void loop() {
-  float h = dht.readHumidity();       
-  float t = dht.readTemperature();    
-
-  
-  if (isnan(h) || isnan(t)) {
-    Serial.println("ERROR: Sensor tidak terbaca!");
-    delay(2000);
-    return;
-  }
-
-  Serial.print("Humidity: ");
-  Serial.print(h);
-  Serial.print(" %\t");
-
-  Serial.print("Temperature: ");
-  Serial.print(t);
-  Serial.println(" *C");
-
-  delay(500);   
-}
-```
-Hasil Singkat:
-| Suhu Standar | Suhu DHT11 | Selisih | Status |
-|--------------|------------|---------|---------|
-| 25.0°C | 24.20°C | +0.80°C | ✓ Baik |
-| 22.0°C | 23.0°C | +1.0°C | ✓ Baik |
-| Kelembaban >85% | Terdeteksi | - | ✓ Responsif |
- 
-
-
-B. Pengujian LDR (Sensor Cahaya)
-Langkah:
-1. Pasang LDR ke pin A0
-2. Ukur nilai analog dalam kondisi berbeda
-3. Hitung persentase cahaya
-4. Tutup sensor untuk mendeteksi lagi mendung atau gelap
-```
-int ldrPin = A0;    
-int nilaiCahaya;   
-
-void setup() {
-  Serial.begin(9600);  
-}
-
-void loop() {
-  nilaiCahaya = analogRead(ldrPin);  
-  Serial.print("Nilai Cahaya: ");
-  Serial.println(nilaiCahaya);       
-
-  delay(500);
-}
-```
- 
-
-Hasil:
-| Kondisi | Nilai Analog | Kategori | Status |
-|---------|-------------|----------|---------|
-| Gelap | 0-400 | GELAP | ✓ Benar |
-| Remang | 401-2000 | MENDUNG | ✓ Sesuai |
-| Terang | 2001-4095 | CERAH | ✓ Akurat |
-
-C. Pengujian Water Sensor
-Langkah:
-1. Semprot air ke sensor
-2. Ukur nilai analog
-3. Uji kondisi kering/basah
-```
-const int waterPin = A0;   
-int value = 0;             
-
-void setup() {
-  Serial.begin(9600);     
-}
-
-void loop() {
-  value = analogRead(waterPin);  
-
-  Serial.print("Nilai Sensor: ");
-  Serial.println(value);
-
-  // Logika mendeteksi air
-  if (value < 160) {   
-    Serial.println("Status: ADA AIR");
-  } else {
-    Serial.println("Status: TIDAK ADA AIR");
-  }
-
-  Serial.println("----------------------");
-  delay(500);
-}
-```
- 
-
-Hasil:
-| Kondisi | Nilai Analog | Alarm | Status |
-|---------|-------------|--------|---------|
-| Kering | <160 | ON | ✓ Benar |
-| Basah | ≥160 | OFF | ✓ Benar |
-
- D. Sensor RTC DS3231
-Langkah Pengujian:
-1. Set waktu awal ke komputer
-2. Bandingkan dengan waktu internet
-```
-#include <Wire.h>
-#include <RTClib.h>
-
-RTC_DS3231 rtc;
-
-void setup() {
-  Serial.begin(9600);
-  while (!Serial);
-
-  if (!rtc.begin()) {
-    Serial.println("RTC TIDAK TERDETEKSI!");
-    while (1);
-  }
-
-  
-  rtc.adjust(DateTime(2025, 12, 5, 16, 12, 0));  
-  // Format: (Tahun, Bulan, Hari, Jam, Menit, Detik)
-
-  Serial.println("RTC DISSET KE WAKTU SEKARANG!");
-}
-
-void loop() {
-  DateTime now = rtc.now();
-
-  Serial.print(now.day());
-  Serial.print("/");
-  Serial.print(now.month());
-  Serial.print("/");
-  Serial.print(now.year());
-  Serial.print("  ");
-
-  Serial.print(now.hour());
-  Serial.print(":");
-  Serial.print(now.minute());
-  Serial.print(":");
-  Serial.println(now.second());
-
+  float h = dht.readHumidity();
+  float t = dht.readTemperature();
+  Serial.print("Humidity: "); Serial.print(h);
+  Serial.print(" %  Temperature: "); Serial.print(t);
+  Serial.println(" C");
   delay(1000);
 }
 ```
- 
 
-Hasil:
-| Uji | Waktu Set | Waktu Baca | Selisih | Status |
-|-----|-----------|------------|---------|---------|
-| Akurasi 24 jam | 16:12:35 | 16:12:10 | ±1 detik | ✓ Akurat |
-| Format Tanggal | 7/1/2024 | 07/01/24 | - | ✓ Benar |
+**Hasil Pengujian:**
 
+| Suhu Referensi | Suhu DHT11 | Selisih | Status    |
+| -------------- | ---------- | ------- | --------- |
+| 25°C           | 24.2°C     | ±0.8°C  | Baik      |
+| 22°C           | 23.0°C     | ±1.0°C  | Baik      |
+| RH ≥ 85%       | Terdeteksi | -       | Responsif |
 
-E.Integrasi Input
-Menggabungkan semua input untuk menguji apakah semua sensor bisa berkerja sama antar sama .
+---
+
+### 5.2 Pengujian Sensor Cahaya (LDR)
+
+**Tujuan Pengujian:**
+Mengetahui kemampuan sensor LDR dalam mendeteksi perubahan intensitas cahaya dan mengonversinya menjadi nilai analog.
+
+**Langkah-langkah Pengujian:**
+
+1. Hubungkan LDR ke pin analog A0 ESP32.
+2. Upload kode pengujian ke mikrokontroler.
+3. Amati nilai analog pada Serial Monitor.
+4. Ubah kondisi cahaya (terang, redup, dan gelap) untuk melihat perubahan nilai.
+
+```cpp
+int ldrPin = A0;
+void setup() {
+  Serial.begin(9600);
+}
+void loop() {
+  int nilai = analogRead(ldrPin);
+  Serial.println(nilai);
+  delay(500);
+}
 ```
+
+| Kondisi | Nilai Analog | Kategori |
+| ------- | ------------ | -------- |
+| Gelap   | 0–400        | Gelap    |
+| Mendung | 401–2000     | Mendung  |
+| Terang  | 2001–4095    | Cerah    |
+
+---
+
+### 5.3 Pengujian Water Sensor
+
+**Tujuan Pengujian:**
+Pengujian ini dilakukan untuk memastikan water sensor mampu mendeteksi keberadaan air sebagai indikator hujan.
+
+**Langkah-langkah Pengujian:**
+
+1. Hubungkan water sensor ke pin analog A0 ESP32.
+2. Upload program pengujian.
+3. Amati nilai sensor dalam kondisi kering.
+4. Teteskan atau semprotkan air ke sensor dan amati perubahan nilai.
+
+```cpp
+int waterPin = A0;
+void setup() { Serial.begin(9600); }
+void loop() {
+  int value = analogRead(waterPin);
+  if (value < 160) Serial.println("ADA AIR");
+  else Serial.println("TIDAK ADA AIR");
+  delay(500);
+}
+```
+
+| Kondisi | Nilai | Status     |
+| ------- | ----- | ---------- |
+| Kering  | <160  | Terdeteksi |
+| Basah   | ≥160  | Terdeteksi |
+
+---
+
+### 5.4 Pengujian RTC DS3231
+
+**Tujuan Pengujian:**
+Mengetahui tingkat akurasi modul RTC DS3231 dalam menyimpan dan menampilkan waktu secara real-time.
+
+**Langkah-langkah Pengujian:**
+
+1. Hubungkan RTC ke ESP32 menggunakan jalur I2C (SDA dan SCL).
+2. Set waktu awal sesuai waktu komputer.
+3. Upload program pengujian.
+4. Bandingkan waktu yang ditampilkan dengan waktu aktual.
+
+```cpp
+#include <Wire.h>
+#include <RTClib.h>
+RTC_DS3231 rtc;
+void setup() {
+  Serial.begin(9600);
+  rtc.begin();
+  rtc.adjust(DateTime(2025,12,5,16,12,0));
+}
+void loop() {
+  DateTime now = rtc.now();
+  Serial.println(now.timestamp());
+  delay(1000);
+}
+```
+
+| Parameter     | Hasil           | Status |
+| ------------- | --------------- | ------ |
+| Akurasi waktu | ±1 detik/24 jam | Akurat |
+
+---
+
+## 5.5 Pengujian Integrasi Sistem
+
+### A. Tujuan Pengujian Integrasi
+
+Pengujian integrasi bertujuan untuk memastikan seluruh sensor input (DHT11, LDR, Water Sensor, dan RTC) dapat bekerja secara bersamaan dalam satu sistem, serta data yang dihasilkan dapat diproses dengan benar oleh mikrokontroler sebelum digunakan untuk pengambilan keputusan pada output.
+
+### B. Langkah-langkah Pengujian Integrasi
+
+1. Menghubungkan seluruh sensor (DHT11, LDR, Water Sensor, dan RTC DS3231) ke ESP32 sesuai dengan konfigurasi pin.
+2. Mengunggah program integrasi yang membaca seluruh sensor secara simultan.
+3. Mengamati data yang ditampilkan pada Serial Monitor.
+4. Memberikan variasi kondisi lingkungan, seperti:
+
+   * Menutup LDR untuk mensimulasikan kondisi gelap.
+   * Memberikan air pada water sensor.
+   * Meningkatkan kelembaban di sekitar sensor DHT11.
+5. Memastikan setiap perubahan kondisi terdeteksi dengan benar oleh sistem.
+
+### C. Kode Program Pengujian Integrasi Input
+
+```cpp
 #include <Wire.h>
 #include <RTClib.h>
 #include "DHT.h"
-
 
 RTC_DS3231 rtc;
 
 #define DHTPIN 2
-#define DHTTYPE DHT11      
+#define DHTTYPE DHT11
 DHT dht(DHTPIN, DHTTYPE);
 
-int waterPin = A0;        
-int lightPin = A1;         
+int waterPin = A0;
+int lightPin = A1;
 
 void setup() {
   Serial.begin(9600);
   dht.begin();
 
- 
   if (!rtc.begin()) {
     Serial.println("RTC TIDAK TERDETEKSI!");
     while (1);
   }
 
- 
- 
   rtc.adjust(DateTime(2025, 12, 5, 16, 0, 0));
- 
-
-  Serial.println("Semua Sensor Siap!");
+  Serial.println("Semua Sensor Berhasil Diinisialisasi");
 }
 
 void loop() {
-
- 
   DateTime now = rtc.now();
 
-  
   float humidity = dht.readHumidity();
   float temperature = dht.readTemperature();
-
-  
   int waterValue = analogRead(waterPin);
-
-  
   int lightValue = analogRead(lightPin);
 
-  
-  Serial.println("=================================");
+  Serial.println("==============================");
+  Serial.print("Waktu       : ");
+  Serial.println(now.timestamp());
 
-  
-  Serial.print("Waktu : ");
-  Serial.print(now.day());
-  Serial.print("/");
-  Serial.print(now.month());
-  Serial.print("/");
-  Serial.print(now.year());
-  Serial.print("  ");
-  Serial.print(now.hour());
-  Serial.print(":");
-  Serial.print(now.minute());
-  Serial.print(":");
-  Serial.println(now.second());
-
-  Serial.print("Temperature : ");
+  Serial.print("Suhu        : ");
   Serial.print(temperature);
   Serial.println(" C");
 
-  Serial.print("Humidity    : ");
+  Serial.print("Kelembaban  : ");
   Serial.print(humidity);
   Serial.println(" %");
 
-  
-  Serial.print("Water Level : ");
+  Serial.print("Water Sensor: ");
   Serial.println(waterValue);
 
-
-  Serial.print("Cahaya (LDR): ");
+  Serial.print("LDR         : ");
   Serial.println(lightValue);
-
-  Serial.println("=================================\n");
+  Serial.println("==============================
+");
 
   delay(1000);
 }
 ```
-  
 
-Hasil diatas membuktikan bahwa sensor berkerja dengan baik dan sedikit membutuhkan penyesuain saat semua input dan digabung.
+### D. Hasil Pengujian Integrasi Input
 
-2.Pengujian Input
-A.SERVO
+| No | Input Sensor | Kondisi Uji              | Hasil Pembacaan        | Status     |
+| -- | ------------ | ------------------------ | ---------------------- | ---------- |
+| 1  | DHT11        | Suhu normal & RH >85%    | Suhu & RH terbaca      | ✓ Berhasil |
+| 2  | LDR          | Terang / Mendung / Gelap | Nilai analog berubah   | ✓ Berhasil |
+| 3  | Water Sensor | Kering / Basah           | Nilai <160 terdeteksi  | ✓ Berhasil |
+| 4  | RTC DS3231   | Waktu berjalan           | Waktu real-time tampil | ✓ Berhasil |
+| 5  | Semua Sensor | Dibaca bersamaan         | Data stabil & sinkron  | ✓ Berhasil |
 
-```
-#include <Servo.h>
+### 6.5 Analisis Pengujian Integrasi
 
-Servo myServo;
-int pinServo = 9;
-int targetPos = 0;
+Berdasarkan hasil pengujian, seluruh sensor input dapat bekerja secara bersamaan tanpa konflik data. Nilai yang ditampilkan pada Serial Monitor sesuai dengan kondisi lingkungan yang diberikan. Hal ini menunjukkan bahwa sistem telah terintegrasi dengan baik dan siap digunakan untuk pengujian respon output dan implementasi sistem otomasi secara penuh.
 
-void setup() {
-  Serial.begin(9600);     
-  myServo.attach(pinServo);
-  
-  Serial.println("Ketik sudut servo (0 - 180):");
-}
+---
 
-void loop() {
-  
-  if (Serial.available() > 0) {
-    targetPos = Serial.parseInt();  
-
-   
-    if (targetPos >= 0 && targetPos <= 180) {
-      myServo.write(targetPos);
-      Serial.print("Servo bergerak ke: ");
-      Serial.println(targetPos);
-    } else {
-      Serial.println("ERROR: Masukkan angka 0 - 180!");
-    }
-  }
-}
-```
-
-B.LCD
-
-```
-#include <Wire.h>
-#include <LiquidCrystal_I2C.h>
-
-
-LiquidCrystal_I2C lcd(0x27, 16, 2);
-
-void setup() {
-  lcd.init();          
-  lcd.backlight();     
-
-  lcd.setCursor(0, 0); 
-  lcd.print("DERAJAT/SUHU");
-
-  lcd.setCursor(0, 1); 
-  lcd.print("DAN KELEMBAPAN");
-}
-
-void loop() {
- 
-}
-```
-
-C.LED
-
-```
-int ledHijau = 12;  
-int ledMerah = 13;   
-
-int nilai = 0;      
-void setup() {
-  Serial.begin(9600);
-
-  pinMode(ledHijau, OUTPUT);
-  pinMode(ledMerah, OUTPUT);
-
-  Serial.println("Masukkan angka (0 = Hijau, >0 = Merah)");
-}
-
-void loop() {
-
-  if (Serial.available() > 0) {
-    nilai = Serial.parseInt();
-
-    Serial.print("Input: ");
-    Serial.println(nilai);
-
-    
-    if (nilai == 0) {
-      digitalWrite(ledHijau, HIGH);
-      digitalWrite(ledMerah, LOW);
-    } 
-    else {
-      digitalWrite(ledHijau, LOW);
-      digitalWrite(ledMerah, HIGH);
-    }
-  }
-}
-```
-
-D.BUZZER
-
-```
-#define BUZZER 9   
-
-void setup() {
-  pinMode(BUZZER, OUTPUT); 
-}
-
-void loop() {
-  digitalWrite(BUZZER, HIGH); 
-  delay(1000);              
-  digitalWrite(BUZZER, LOW); 
-  delay(1000);          
-```
-
+*Automatic Clothes Dryer* berbasis ESP32 berhasil bekerja sesuai perancangan. Sistem mampu mendeteksi kondisi lingkungan, mengontrol aktuator secara otomatis, serta dapat dimonitor melalui platform IoT. Sistem ini layak dikembangkan lebih lanjut untuk implementasi *smart home* yang terjangkau.

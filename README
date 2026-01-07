@@ -206,99 +206,259 @@ void loop() {
 
 ---
 
-## 5.5 Pengujian Integrasi Sistem Input
+## 6. Pengujian Integrasi Sistem (Integrasi Input)
 
-### A. Tujuan Pengujian Integrasi
+### 6.1 Tujuan Pengujian
 
-Pengujian integrasi bertujuan untuk memastikan seluruh sensor input (DHT11, LDR, Water Sensor, dan RTC) dapat bekerja secara bersamaan dalam satu sistem, serta data yang dihasilkan dapat diproses dengan benar oleh mikrokontroler sebelum digunakan untuk pengambilan keputusan pada output.
+Pengujian integrasi input bertujuan untuk memastikan seluruh **input sistem** (sensor dan push button) dapat dibaca secara bersamaan oleh mikrokontroler dan menghasilkan variabel logika yang benar sebelum diteruskan ke bagian output.
 
-### B. Langkah-langkah Pengujian Integrasi
+Input yang diuji meliputi:
 
-1. Menghubungkan seluruh sensor (DHT11, LDR, Water Sensor, dan RTC DS3231) ke ESP32 sesuai dengan konfigurasi pin.
-2. Mengunggah program integrasi yang membaca seluruh sensor secara simultan.
-3. Mengamati data yang ditampilkan pada Serial Monitor.
-4. Memberikan variasi kondisi lingkungan, seperti:
+* Sensor DHT11 (suhu & kelembapan)
+* Sensor cahaya (LDR)
+* Water sensor
+* RTC DS3231
+* Push button
 
-   * Menutup LDR untuk mensimulasikan kondisi gelap.
-   * Memberikan air pada water sensor.
-   * Meningkatkan kelembaban di sekitar sensor DHT11.
-5. Memastikan setiap perubahan kondisi terdeteksi dengan benar oleh sistem.
+---
 
-### C. Kode Program Pengujian Integrasi Input
+### 6.2 Kode Pengujian Integrasi Input
+
+Kode berikut digunakan untuk membaca seluruh input secara bersamaan dan menampilkannya melalui Serial Monitor. Kode ini **belum mengendalikan output**, sehingga fokus murni pada validasi input.
 
 ```cpp
 #include <Wire.h>
 #include <RTClib.h>
-#include "DHT.h"
+#include <DHT.h>
+
+#define DHT_PIN 2
+#define DHT_TYPE DHT11
+#define WATER_PIN A0
+#define LIGHT_PIN A1
+#define BUTTON_PIN 3
 
 RTC_DS3231 rtc;
-
-#define DHTPIN 2
-#define DHTTYPE DHT11
-DHT dht(DHTPIN, DHTTYPE);
-
-int waterPin = A0;
-int lightPin = A1;
+DHT dht(DHT_PIN, DHT_TYPE);
 
 void setup() {
   Serial.begin(9600);
   dht.begin();
-
-  if (!rtc.begin()) {
-    Serial.println("RTC TIDAK TERDETEKSI!");
-    while (1);
-  }
-
-  rtc.adjust(DateTime(2025, 12, 5, 16, 0, 0));
-  Serial.println("Semua Sensor Berhasil Diinisialisasi");
+  rtc.begin();
+  pinMode(BUTTON_PIN, INPUT_PULLUP);
 }
 
 void loop() {
+  float suhu = dht.readTemperature();
+  float hum = dht.readHumidity();
+  int waterVal = analogRead(WATER_PIN);
+  int lightVal = analogRead(LIGHT_PIN);
+  int lightPct = map(lightVal, 0, 1023, 0, 100);
+  bool tombol = digitalRead(BUTTON_PIN) == LOW;
+
   DateTime now = rtc.now();
 
-  float humidity = dht.readHumidity();
-  float temperature = dht.readTemperature();
-  int waterValue = analogRead(waterPin);
-  int lightValue = analogRead(lightPin);
-
-  Serial.println("==============================");
-  Serial.print("Waktu       : ");
-  Serial.println(now.timestamp());
-
-  Serial.print("Suhu        : ");
-  Serial.print(temperature);
-  Serial.println(" C");
-
-  Serial.print("Kelembaban  : ");
-  Serial.print(humidity);
-  Serial.println(" %");
-
-  Serial.print("Water Sensor: ");
-  Serial.println(waterValue);
-
-  Serial.print("LDR         : ");
-  Serial.println(lightValue);
-  Serial.println("==============================
-");
+  Serial.println("===== DATA INPUT =====");
+  Serial.print("Suhu        : "); Serial.print(suhu); Serial.println(" C");
+  Serial.print("Kelembapan  : "); Serial.print(hum); Serial.println(" %");
+  Serial.print("Water Sensor: "); Serial.println(waterVal);
+  Serial.print("Cahaya      : "); Serial.print(lightPct); Serial.println(" %");
+  Serial.print("Tombol      : "); Serial.println(tombol ? "DITEKAN" : "TIDAK");
+  Serial.print("Waktu RTC   : "); Serial.print(now.hour()); Serial.print(":"); Serial.println(now.minute());
+  Serial.println("=======================");
 
   delay(1000);
 }
 ```
 
-### D. Hasil Pengujian Integrasi Input
+---
 
-| No | Input Sensor | Kondisi Uji              | Hasil Pembacaan        | Status     |
-| -- | ------------ | ------------------------ | ---------------------- | ---------- |
-| 1  | DHT11        | Suhu normal & RH >85%    | Suhu & RH terbaca      | ✓ Berhasil |
-| 2  | LDR          | Terang / Mendung / Gelap | Nilai analog berubah   | ✓ Berhasil |
-| 3  | Water Sensor | Kering / Basah           | Nilai <160 terdeteksi  | ✓ Berhasil |
-| 4  | RTC DS3231   | Waktu berjalan           | Waktu real-time tampil | ✓ Berhasil |
-| 5  | Semua Sensor | Dibaca bersamaan         | Data stabil & sinkron  | ✓ Berhasil |
+### 6.3 Langkah-Langkah Pengujian Integrasi Input
 
-### 6.5 Analisis Pengujian Integrasi
-
-Berdasarkan hasil pengujian, seluruh sensor input dapat bekerja secara bersamaan tanpa konflik data. Nilai yang ditampilkan pada Serial Monitor sesuai dengan kondisi lingkungan yang diberikan. Hal ini menunjukkan bahwa sistem telah terintegrasi dengan baik dan siap digunakan untuk pengujian respon output dan implementasi sistem otomasi secara penuh.
+1. Mengunggah kode pengujian integrasi input ke mikrokontroler.
+2. Membuka **Serial Monitor** dengan baud rate 9600.
+3. Mengamati data suhu dan kelembapan dari sensor DHT11.
+4. Mengubah kondisi cahaya (gelap/terang) dan mencatat perubahan nilai LDR.
+5. Memberikan air pada water sensor dan mengamati perubahan nilai.
+6. Menekan push button untuk memastikan status input terbaca dengan benar.
+7. Membandingkan waktu yang ditampilkan RTC dengan waktu aktual.
 
 ---
 
-*Automatic Clothes Dryer* berbasis ESP32 berhasil bekerja sesuai perancangan. Sistem mampu mendeteksi kondisi lingkungan, mengontrol aktuator secara otomatis, serta dapat dimonitor melalui platform IoT. Sistem ini layak dikembangkan lebih lanjut untuk implementasi *smart home* yang terjangkau.
+### 6.4 Tabel Hasil Pengujian Integrasi Input
+
+| No | Input        | Kondisi Uji       | Hasil Pembacaan          | Status     |
+| -- | ------------ | ----------------- | ------------------------ | ---------- |
+| 1  | DHT11        | Suhu ruang normal | 24–30°C                  | Sesuai     |
+| 2  | DHT11        | Kelembapan tinggi | ≥85%                     | Terdeteksi |
+| 3  | LDR          | Terang            | >50%                     | Sesuai     |
+| 4  | LDR          | Gelap             | <10%                     | Sesuai     |
+| 5  | Water Sensor | Kering            | <160                     | Terdeteksi |
+| 6  | Water Sensor | Basah             | ≥160                     | Terdeteksi |
+| 7  | Push Button  | Ditekan           | LOW                      | Sesuai     |
+| 8  | RTC          | Sinkron waktu     | Sama dengan waktu aktual | Akurat     |
+
+---
+
+### 6.5 Pembahasan Hasil Integrasi Input
+
+Berdasarkan hasil pengujian, seluruh input dapat dibaca secara bersamaan tanpa konflik pin maupun gangguan pembacaan. Data yang ditampilkan pada Serial Monitor menunjukkan bahwa setiap sensor memberikan respon sesuai dengan kondisi pengujian. Hal ini menandakan bahwa sistem telah siap untuk diintegrasikan dengan logika kontrol dan output.
+
+## 7. Pengujian Respon Output
+
+Pengujian respon output difokuskan sepenuhnya pada perangkat keluaran sistem tanpa melibatkan logika pengambilan keputusan dari sensor. Setiap output diuji secara mandiri menggunakan kode sederhana untuk memastikan perangkat bekerja dengan baik sebelum diintegrasikan ke sistem utama.
+
+### 7.1 Tujuan Pengujian Output
+
+1. Memastikan setiap perangkat output berfungsi secara fisik.
+2. Memastikan sinyal dari mikrokontroler dapat diterima dengan baik oleh output.
+3. Menghindari kesalahan hardware sebelum integrasi sistem.
+
+---
+
+### 7.2 Pengujian LED
+
+**Tujuan:** Menguji LED sebagai indikator visual.
+
+**Kode Pengujian LED:**
+
+```cpp
+int ledHijau = 6;
+int ledMerah = 5;
+
+void setup() {
+  pinMode(ledHijau, OUTPUT);
+  pinMode(ledMerah, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(ledHijau, HIGH);
+  digitalWrite(ledMerah, LOW);
+  delay(1000);
+
+  digitalWrite(ledHijau, LOW);
+  digitalWrite(ledMerah, HIGH);
+  delay(1000);
+}
+```
+
+**Hasil Pengujian LED:**
+
+| Kondisi Uji      | LED Hijau | LED Merah | Status      |
+| ---------------- | --------- | --------- | ----------- |
+| Aktif bergantian | ON        | OFF / ON  | ✓ Berfungsi |
+
+**Penjelasan:**
+LED menyala dan mati secara bergantian sesuai perintah program, menandakan pin output berfungsi dengan baik.
+
+---
+
+### 7.3 Pengujian Servo Motor
+
+**Tujuan:** Memastikan servo dapat bergerak sesuai sudut perintah.
+
+**Kode Pengujian Servo:**
+
+```cpp
+#include <Servo.h>
+Servo servoTest;
+
+void setup() {
+  servoTest.attach(9);
+}
+
+void loop() {
+  servoTest.write(0);
+  delay(2000);
+  servoTest.write(140);
+  delay(2000);
+}
+```
+
+**Hasil Pengujian Servo:**
+
+| Sudut Servo | Gerakan | Status     |
+| ----------- | ------- | ---------- |
+| 0°          | Menutup | ✓ Berhasil |
+| 140°        | Membuka | ✓ Berhasil |
+
+**Penjelasan:**
+Servo bergerak sesuai sudut yang diperintahkan tanpa gangguan, menandakan kontrol PWM berjalan normal.
+
+---
+
+### 7.4 Pengujian Buzzer
+
+**Tujuan:** Menguji buzzer sebagai alarm suara.
+
+**Kode Pengujian Buzzer:**
+
+```cpp
+#define BUZZER 4
+
+void setup() {
+  pinMode(BUZZER, OUTPUT);
+}
+
+void loop() {
+  digitalWrite(BUZZER, HIGH);
+  delay(200);
+  digitalWrite(BUZZER, LOW);
+  delay(200);
+  digitalWrite(BUZZER, HIGH);
+  delay(200);
+  digitalWrite(BUZZER, LOW);
+  delay(2000);
+}
+```
+
+**Hasil Pengujian Buzzer:**
+
+| Kondisi | Respon       | Status     |
+| ------- | ------------ | ---------- |
+| Aktif   | Bunyi 2 kali | ✓ Berhasil |
+
+**Penjelasan:**
+Buzzer mengeluarkan suara sebanyak dua kali sesuai dengan program, menandakan output audio bekerja normal.
+
+---
+
+### 7.5 Pengujian LCD
+
+**Tujuan:** Menguji kemampuan LCD menampilkan teks.
+
+**Kode Pengujian LCD:**
+
+```cpp
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+void setup() {
+  lcd.init();
+  lcd.backlight();
+  lcd.setCursor(0,0);
+  lcd.print("LCD TEST OK");
+  lcd.setCursor(0,1);
+  lcd.print("OUTPUT NORMAL");
+}
+
+void loop() {
+}
+```
+
+**Hasil Pengujian LCD:**
+
+| Baris | Tampilan      | Status     |
+| ----- | ------------- | ---------- |
+| 1     | LCD TEST OK   | ✓ Berhasil |
+| 2     | OUTPUT NORMAL | ✓ Berhasil |
+
+**Penjelasan:**
+LCD berhasil menampilkan karakter pada kedua baris dengan jelas, menandakan komunikasi I2C berjalan normal.
+
+---
+
+## 8. Penutup (Kesimpulan)
+
+Berdasarkan hasil pengujian, sistem *Automatic Clothes Dryer* berbasis ESP32 berhasil bekerja sesuai perancangan. Sistem mampu mendeteksi kondisi lingkungan, mengontrol aktuator secara otomatis, serta dapat dimonitor melalui platform IoT. Sistem ini layak dikembangkan lebih lanjut untuk implementasi *smart home* yang terjangkau.

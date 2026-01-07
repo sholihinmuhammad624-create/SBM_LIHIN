@@ -459,6 +459,3 @@ LCD berhasil menampilkan karakter pada kedua baris dengan jelas, menandakan komu
 
 ---
 
-## 8. Penutup (Kesimpulan)
-
-Berdasarkan hasil pengujian, sistem *Automatic Clothes Dryer* berbasis ESP32 berhasil bekerja sesuai perancangan. Sistem mampu mendeteksi kondisi lingkungan, mengontrol aktuator secara otomatis, serta dapat dimonitor melalui platform IoT. Sistem ini layak dikembangkan lebih lanjut untuk implementasi *smart home* yang terjangkau.
